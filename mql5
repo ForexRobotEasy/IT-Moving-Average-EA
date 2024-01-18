@@ -1,0 +1,58 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                              IT Moving Average EA|
+//|                                     https://www.forexroboteasy.com|
+//|                                                Forex Robot Easy Team|
+//+------------------------------------------------------------------+
+
+// Define input parameters
+input int maPeriod1 = 50;        // Period of the first moving average
+input int maPeriod2 = 200;       // Period of the second moving average
+
+// Define global variables
+int ticket = 0;                 // Order ticket number
+double lotSize = 0.01;          // Size of each order
+
+// Initialize EA
+void OnInit()
+{
+   // Set up chart properties
+   SymbolInfoDouble(_Symbol, SYMBOL_TRADE_STOPS_LEVEL, 0);  // Disable stop-level
+   SymbolInfoInteger(_Symbol, SYMBOL_TRADE_MODE, TRADE_MODE_FULL);  // Enable full trading mode
+}
+
+// Execute trading logic
+void OnTick()
+{
+   // Calculate moving averages
+   double ma1 = iMA(_Symbol, 0, maPeriod1, 0, MODE_SMA, PRICE_CLOSE, 0);  // Calculate MA1
+   double ma2 = iMA(_Symbol, 0, maPeriod2, 0, MODE_SMA, PRICE_CLOSE, 0);  // Calculate MA2
+   
+   // Check for crossover
+   if (ma1 > ma2)
+   {
+      // Check for existing buy position
+      if (PositionSelect(_Symbol) && PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
+      {
+         // Close existing buy position
+         OrderClose(ticket, PositionGetDouble(POSITION_VOLUME), Bid, 3, Red);
+      }
+      
+      // Open new buy position
+      ticket = OrderSend(_Symbol, OP_BUY, lotSize, Ask, 3, 0, 0, '', 0, 0, Blue);
+   }
+   else if (ma1 < ma2)
+   {
+      // Check for existing sell position
+      if (PositionSelect(_Symbol) && PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
+      {
+         // Close existing sell position
+         OrderClose(ticket, PositionGetDouble(POSITION_VOLUME), Ask, 3, Red);
+      }
+      
+      // Open new sell position
+      ticket = OrderSend(_Symbol, OP_SELL, lotSize, Bid, 3, 0, 0, '', 0, 0, Blue);
+   }
+}
+
+//+------------------------------------------------------------------+
